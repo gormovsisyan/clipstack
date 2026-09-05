@@ -1,0 +1,30 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and package
+        env:
+          TAG: ${{ github.ref_name }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: VERSION="${TAG#v}" ./build.sh --package
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" build/Clipstack.zip \
+            --title "Clipstack $TAG" \
+            --generate-notes \
+            --notes "Unzip, drag Clipstack.app to Applications, and see the README for the first-launch steps (the build is not notarized)."

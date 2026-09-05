@@ -22,7 +22,26 @@ you are working in. Built in Swift with AppKit and SwiftUI. No dependencies, no 
 
 ## Install
 
-Requires macOS 14 or newer and Xcode or the Command Line Tools.
+Requires macOS 14 or newer.
+
+### Download
+
+1. Download [Clipstack.zip](https://github.com/gormovsisyan/clipstack/releases/latest/download/Clipstack.zip)
+   from the latest release.
+2. Unzip it and drag `Clipstack.app` to your Applications folder.
+3. Open it. Because the build is not notarized by Apple, macOS blocks the first launch:
+   - **macOS 15 and newer**: click Done, then open System Settings → Privacy & Security, scroll
+     down, and click **Open Anyway** next to the Clipstack message.
+   - **macOS 14**: right-click `Clipstack.app` in Finder and choose Open.
+   - Or from a terminal: `xattr -dr com.apple.quarantine /Applications/Clipstack.app`
+4. Grant Accessibility access when the panel asks (see Permissions below).
+
+Because the app is signed ad hoc, each new version has a different signature, so the
+Accessibility grant has to be re-enabled after updating.
+
+### Build from source
+
+Needs Xcode or the Command Line Tools.
 
 ```sh
 git clone https://github.com/gormovsisyan/clipstack.git
@@ -30,8 +49,8 @@ cd clipstack
 ./build.sh --install     # builds build/Clipstack.app, copies it to /Applications, launches it
 ```
 
-`./build.sh --run` builds and launches without installing. You can also open `Package.swift`
-in Xcode and run it from there.
+`./build.sh --run` builds and launches without installing, `./build.sh --package` produces
+`build/Clipstack.zip`. You can also open `Package.swift` in Xcode and run it from there.
 
 ## Permissions
 
@@ -85,6 +104,9 @@ See `AGENTS.md` for the file layout and the rules to keep in mind when changing 
 swift build          # compile
 ./build.sh --run     # release bundle + relaunch
 ```
+
+Releases are automated: pushing a tag like `v1.2.0` runs `.github/workflows/release.yml`,
+which builds the bundle, stamps the version, and attaches `Clipstack.zip` to a GitHub release.
 
 Website: [clipstack.landing](https://github.com/gormovsisyan/clipstack.landing).
 

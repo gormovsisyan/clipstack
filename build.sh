@@ -3,6 +3,9 @@
 #   ./build.sh            build the app bundle
 #   ./build.sh --run      build, then launch it
 #   ./build.sh --install  build, then copy to /Applications and launch
+#   ./build.sh --package  build, then zip the bundle to build/Clipstack.zip
+#
+# VERSION=1.2.0 stamps CFBundleShortVersionString; BUILD_NUMBER stamps CFBundleVersion.
 #
 # Set SIGN_IDENTITY to a certificate name (e.g. a self-signed "Code Signing" cert
 # made in Keychain Access) so macOS keeps the Accessibility grant across rebuilds.
@@ -30,6 +33,12 @@ rm -rf "$APP_DIR"
 mkdir -p "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources"
 cp "$BIN" "$APP_DIR/Contents/MacOS/$APP_NAME"
 cp Info.plist "$APP_DIR/Contents/Info.plist"
+if [ -n "${VERSION:-}" ]; then
+  /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$APP_DIR/Contents/Info.plist"
+fi
+if [ -n "${BUILD_NUMBER:-}" ]; then
+  /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$APP_DIR/Contents/Info.plist"
+fi
 cp build/AppIcon.icns "$APP_DIR/Contents/Resources/AppIcon.icns"
 printf 'APPL????' > "$APP_DIR/Contents/PkgInfo"
 
@@ -40,6 +49,11 @@ case "${1:-}" in
   --run)
     pkill -x "$APP_NAME" 2>/dev/null || true
     open "$APP_DIR"
+    ;;
+  --package)
+    rm -f "build/$APP_NAME.zip"
+    ditto -c -k --norsrc --keepParent "$APP_DIR" "build/$APP_NAME.zip"
+    echo "Packaged build/$APP_NAME.zip"
     ;;
   --install)
     pkill -x "$APP_NAME" 2>/dev/null || true

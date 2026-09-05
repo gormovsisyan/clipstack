@@ -15,6 +15,7 @@ Deployment target macOS 14. No third-party dependencies, no network access, no a
 | `./build.sh` | Release build, assembles `build/Clipstack.app`, generates the icon, ad-hoc signs. |
 | `./build.sh --run` | Same, then quits any running copy and launches the new one. |
 | `./build.sh --install` | Same, then copies to `/Applications` and launches. |
+| `./build.sh --package` | Same, then zips the bundle to `build/Clipstack.zip` (what the release workflow ships). |
 | `swift run` | Quick launch without a bundle. Launch-at-login and the Dock-less policy need the bundle. |
 
 There is no test target yet. Verify behaviour end to end:
@@ -29,6 +30,9 @@ log show --predicate 'process == "Clipstack"' --last 5m --style compact
 Screenshots of the panel cannot be taken from a terminal without Screen Recording permission.
 If you need to see the UI, temporarily render the panel's content view with
 `NSView.cacheDisplay(in:to:)` to a PNG, then remove the hook before committing.
+
+Releases: push a tag `vX.Y.Z` and `.github/workflows/release.yml` builds, stamps the version
+from the tag, and attaches `Clipstack.zip` to a GitHub release. `ci.yml` compiles on every push.
 
 ## Layout
 
