@@ -39,6 +39,15 @@ Requires macOS 14 or newer.
 Because the app is signed ad hoc, each new version has a different signature, so the
 Accessibility grant has to be re-enabled after updating.
 
+### Homebrew
+
+```sh
+brew install --cask gormovsisyan/tap/clipstack
+```
+
+Add `--no-quarantine` to skip the "Open Anyway" step. `brew upgrade --cask clipstack` picks up
+new releases.
+
 ### Build from source
 
 Needs Xcode or the Command Line Tools.
@@ -106,7 +115,10 @@ swift build          # compile
 ```
 
 Releases are automated: pushing a tag like `v1.2.0` runs `.github/workflows/release.yml`,
-which builds the bundle, stamps the version, and attaches `Clipstack.zip` to a GitHub release.
+which builds the bundle, stamps the version, attaches `Clipstack.zip` to a GitHub release, and
+updates the cask in [homebrew-tap](https://github.com/gormovsisyan/homebrew-tap) when the
+`TAP_TOKEN` repository secret (a token with write access to the tap) is set. The workflow can
+also be run manually for an existing tag from the Actions tab.
 
 Website: [clipstack.landing](https://github.com/gormovsisyan/clipstack.landing).
 

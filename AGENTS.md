@@ -32,7 +32,9 @@ If you need to see the UI, temporarily render the panel's content view with
 `NSView.cacheDisplay(in:to:)` to a PNG, then remove the hook before committing.
 
 Releases: push a tag `vX.Y.Z` and `.github/workflows/release.yml` builds, stamps the version
-from the tag, and attaches `Clipstack.zip` to a GitHub release. `ci.yml` compiles on every push.
+from the tag, attaches `Clipstack.zip` to a GitHub release, and bumps `version`/`sha256` in
+`gormovsisyan/homebrew-tap` (needs the `TAP_TOKEN` secret). `ci.yml` compiles on every push.
+The cask lives in the tap repo, not here.
 
 ## Layout
 

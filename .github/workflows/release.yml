@@ -3,6 +3,11 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to rebuild and re-publish (e.g. v1.0.0)"
+        required: true
 
 permissions:
   contents: write
@@ -10,21 +15,46 @@ permissions:
 jobs:
   release:
     runs-on: macos-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
 
       - name: Build and package
         env:
-          TAG: ${{ github.ref_name }}
           BUILD_NUMBER: ${{ github.run_number }}
         run: VERSION="${TAG#v}" ./build.sh --package
 
-      - name: Create GitHub release
+      - name: Create or update GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
         run: |
-          gh release create "$TAG" build/Clipstack.zip \
-            --title "Clipstack $TAG" \
-            --generate-notes \
-            --notes "Unzip, drag Clipstack.app to Applications, and see the README for the first-launch steps (the build is not notarized)."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" build/Clipstack.zip --clobber
+          else
+            gh release create "$TAG" build/Clipstack.zip \
+              --title "Clipstack $TAG" \
+              --generate-notes \
+              --notes "Unzip, drag Clipstack.app to Applications, and see the README for the first-launch steps (the build is not notarized). Homebrew: brew install --cask gormovsisyan/tap/clipstack"
+          fi
+
+      - name: Update Homebrew tap
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
+        run: |
+          if [ -z "$TAP_TOKEN" ]; then
+            echo "TAP_TOKEN secret is not set; skipping Homebrew tap update."
+            exit 0
+          fi
+          VERSION="${TAG#v}"
+          SHA=$(shasum -a 256 build/Clipstack.zip | cut -d' ' -f1)
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/gormovsisyan/homebrew-tap.git" tap
+          cd tap
+          sed -i '' -E "s/^  version \".*\"/  version \"$VERSION\"/" Casks/clipstack.rb
+          sed -i '' -E "s/^  sha256 .*/  sha256 \"$SHA\"/" Casks/clipstack.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "clipstack $VERSION" || { echo "cask already up to date"; exit 0; }
+          git push
