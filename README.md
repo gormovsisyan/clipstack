@@ -3,6 +3,8 @@
 Clipboard history for macOS, like Win+V. Press **⌘⇧V** to search and paste anything you copied,
 including images and files.
 
+**[clipstack.gormovsisyan.com](https://clipstack.gormovsisyan.com)** · [Download](https://github.com/gormovsisyan/clipstack/releases/latest/download/Clipstack.zip) · `brew install --cask gormovsisyan/tap/clipstack`
+
 Clipstack lives in the menu bar and records everything you copy. Press the shortcut, type to
 search, pick an item with the arrow keys or the mouse, and it is pasted straight into the app
 you are working in. Built in Swift with AppKit and SwiftUI. No dependencies, no network, no Dock icon.
@@ -124,7 +126,8 @@ updates the cask in [homebrew-tap](https://github.com/gormovsisyan/homebrew-tap)
 `TAP_TOKEN` repository secret (a token with write access to the tap) is set. The workflow can
 also be run manually for an existing tag from the Actions tab.
 
-Website: [clipstack.landing](https://github.com/gormovsisyan/clipstack.landing).
+Website: [clipstack.gormovsisyan.com](https://clipstack.gormovsisyan.com), source in
+[clipstack.landing](https://github.com/gormovsisyan/clipstack.landing).
 
 ## License
 

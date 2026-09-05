@@ -37,7 +37,7 @@ jobs:
             gh release create "$TAG" build/Clipstack.zip \
               --title "Clipstack $TAG" \
               --generate-notes \
-              --notes "Unzip, drag Clipstack.app to Applications, and see the README for the first-launch steps (the build is not notarized). Homebrew: brew install --cask gormovsisyan/tap/clipstack"
+              --notes "Unzip, drag Clipstack.app to Applications, and see https://clipstack.gormovsisyan.com/#install for the first-launch steps (the build is not notarized). Homebrew: brew install --cask gormovsisyan/tap/clipstack"
           fi
 
       - name: Update Homebrew tap
