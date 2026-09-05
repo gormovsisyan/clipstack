@@ -58,6 +58,17 @@ final class PanelController {
         panel.orderOut(nil)
     }
 
+    var theme: UITheme { state.theme }
+
+    func setTheme(_ theme: UITheme) {
+        state.theme = theme
+        panel.setMaterial(theme.material)
+    }
+
+    func toggleTheme() {
+        setTheme(state.theme.next)
+    }
+
     // MARK: - Actions
 
     private var currentItems: [ClipItem] { state.filtered(store.displayItems) }
@@ -145,6 +156,9 @@ final class PanelController {
             switch characters {
             case "p":
                 togglePinSelected()
+                return true
+            case "t":
+                toggleTheme()
                 return true
             case "w":
                 hide()

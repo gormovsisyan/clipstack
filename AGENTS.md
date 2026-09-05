@@ -82,6 +82,13 @@ Sources/Clipstack/
    closures are nonisolated), so keep all state mutation on the main thread by construction.
 8. **Privacy.** Never log clipboard contents. Never send anything over the network.
 
+## Temporary: panel theme toggle
+
+`UITheme` switches the panel between `classic` (default) and the experimental `cards` look
+(`CardsHistoryView.swift`). It is exposed as the "New UI (test)" menu item and ⌘T in the
+panel, persisted in UserDefaults under `uiTheme`. This exists for evaluation only; once a
+direction is chosen, keep one theme and delete the toggle.
+
 ## Conventions
 
 - 4-space indentation, `// MARK: -` sections, comments explain why, not what.

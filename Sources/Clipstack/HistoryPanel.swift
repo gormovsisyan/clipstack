@@ -5,6 +5,7 @@ import AppKit
 final class HistoryPanel: NSPanel {
     var onHide: (() -> Void)?
     private var hiding = false
+    private let effectView = NSVisualEffectView()
 
     init(contentView view: NSView, size: NSSize) {
         super.init(contentRect: NSRect(origin: .zero, size: size),
@@ -23,8 +24,9 @@ final class HistoryPanel: NSPanel {
         standardWindowButton(.miniaturizeButton)?.isHidden = true
         standardWindowButton(.zoomButton)?.isHidden = true
 
-        let effect = NSVisualEffectView(frame: NSRect(origin: .zero, size: size))
-        effect.material = .popover
+        let effect = effectView
+        effect.frame = NSRect(origin: .zero, size: size)
+        effect.material = UITheme.current.material
         effect.blendingMode = .behindWindow
         effect.state = .active
         effect.autoresizingMask = [.width, .height]
@@ -32,6 +34,10 @@ final class HistoryPanel: NSPanel {
         view.autoresizingMask = [.width, .height]
         effect.addSubview(view)
         contentView = effect
+    }
+
+    func setMaterial(_ material: NSVisualEffectView.Material) {
+        effectView.material = material
     }
 
     override var canBecomeKey: Bool { true }
