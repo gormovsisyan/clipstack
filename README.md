@@ -33,7 +33,11 @@ Requires macOS 14 or newer.
    - **macOS 15 and newer**: click Done, then open System Settings → Privacy & Security, scroll
      down, and click **Open Anyway** next to the Clipstack message.
    - **macOS 14**: right-click `Clipstack.app` in Finder and choose Open.
-   - Or from a terminal: `xattr -dr com.apple.quarantine /Applications/Clipstack.app`
+   - Or skip the dialog entirely by removing the quarantine flag in Terminal:
+
+     ```sh
+     xattr -dr com.apple.quarantine /Applications/Clipstack.app
+     ```
 4. Grant Accessibility access when the panel asks (see Permissions below).
 
 Because the app is signed ad hoc, each new version has a different signature, so the
