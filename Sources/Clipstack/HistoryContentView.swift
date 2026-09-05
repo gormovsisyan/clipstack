@@ -1,9 +1,9 @@
 import AppKit
 import SwiftUI
 
-/// Experimental "Cards" theme: near-solid backdrop, each entry as a bordered card with a kind
-/// chip, key caps for shortcuts, and wider image previews. Toggle with ⌘T or the menu.
-struct CardsHistoryView: View {
+/// Panel layout: search pill with item count, one bordered card per entry with a kind chip and
+/// key caps for shortcuts, and a footer with the main shortcuts.
+struct HistoryContentView: View {
     @ObservedObject var store: HistoryStore
     @ObservedObject var state: PanelState
     let items: [ClipItem]
@@ -23,7 +23,7 @@ struct CardsHistoryView: View {
             } else {
                 ItemListView(store: store, state: state, items: items, spacing: 8, padding: 12,
                              onPaste: onPaste, onCopyOnly: onCopyOnly) { item, index, isSelected in
-                    CardRow(store: store, item: item, index: index, isSelected: isSelected,
+                    ItemCard(store: store, item: item, index: index, isSelected: isSelected,
                             onPin: { store.togglePin(item.id) },
                             onDelete: { store.remove(item.id) })
                 }
@@ -74,7 +74,6 @@ struct CardsHistoryView: View {
             hint("↩", "Paste")
             hint("⌘⌫", "Delete")
             hint("⌘P", "Pin")
-            hint("⌘T", "Style")
             Spacer()
             if store.items.contains(where: { !$0.pinned }) {
                 Button("Clear") { store.clear(keepPinned: true) }
@@ -102,7 +101,7 @@ struct CardsHistoryView: View {
     }
 }
 
-struct CardRow: View {
+struct ItemCard: View {
     @ObservedObject var store: HistoryStore
     let item: ClipItem
     let index: Int

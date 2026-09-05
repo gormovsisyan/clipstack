@@ -67,12 +67,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         shortcutItem.submenu = shortcutMenu
         menu.addItem(shortcutItem)
 
-        let newUI = NSMenuItem(title: "New UI (test)", action: #selector(toggleTheme), keyEquivalent: "")
-        newUI.target = self
-        newUI.state = panelController.theme == .cards ? .on : .off
-        newUI.toolTip = "Temporary: switch between the current panel style and the Cards redesign (⌘T in the panel)"
-        menu.addItem(newUI)
-
         menu.addItem(.separator())
 
         let login = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
@@ -126,11 +120,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         registerHotKey(Shortcut.current)
         rebuildMenu()
         updateToolTip()
-    }
-
-    @objc private func toggleTheme() {
-        panelController.toggleTheme()
-        rebuildMenu()
     }
 
     @objc private func toggleLaunchAtLogin() {

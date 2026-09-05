@@ -7,9 +7,6 @@ final class PanelState: ObservableObject {
     @Published var selectedID: UUID?
     @Published var accessibilityTrusted = true
     @Published var focusToken = 0
-    @Published var theme: UITheme = UITheme.current {
-        didSet { UITheme.current = theme }
-    }
     /// Hover-selection is suppressed briefly after keyboard navigation so the list scrolling
     /// underneath a stationary cursor does not steal the selection.
     var lastKeyboardNavigation: Date = .distantPast
@@ -21,7 +18,7 @@ final class PanelState: ObservableObject {
     }
 }
 
-/// Root view: owns focus and selection bookkeeping, delegates the look to the active theme.
+/// Root view: owns focus and selection bookkeeping; the layout lives in HistoryContentView.
 struct HistoryView: View {
     static let width: CGFloat = 380
     static let height: CGFloat = 480
@@ -37,18 +34,9 @@ struct HistoryView: View {
     private var items: [ClipItem] { state.filtered(store.displayItems) }
 
     var body: some View {
-        Group {
-            switch state.theme {
-            case .classic:
-                ClassicHistoryView(store: store, state: state, items: items, searchFocused: $searchFocused,
-                                   onPaste: onPaste, onCopyOnly: onCopyOnly,
-                                   onEnableAccessibility: onEnableAccessibility)
-            case .cards:
-                CardsHistoryView(store: store, state: state, items: items, searchFocused: $searchFocused,
-                                 onPaste: onPaste, onCopyOnly: onCopyOnly,
-                                 onEnableAccessibility: onEnableAccessibility)
-            }
-        }
+        HistoryContentView(store: store, state: state, items: items, searchFocused: $searchFocused,
+                           onPaste: onPaste, onCopyOnly: onCopyOnly,
+                           onEnableAccessibility: onEnableAccessibility)
         .frame(width: Self.width, height: Self.height)
         .ignoresSafeArea()
         .onAppear { searchFocused = true }
@@ -158,187 +146,7 @@ struct EmptyStateView: View {
     }
 }
 
-// MARK: - Classic theme
-
-struct ClassicHistoryView: View {
-    @ObservedObject var store: HistoryStore
-    @ObservedObject var state: PanelState
-    let items: [ClipItem]
-    let searchFocused: FocusState<Bool>.Binding
-    let onPaste: (ClipItem) -> Void
-    let onCopyOnly: (ClipItem) -> Void
-    let onEnableAccessibility: () -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            searchBar
-                .padding(10)
-            Divider()
-            if !state.accessibilityTrusted {
-                AccessibilityBanner(onEnable: onEnableAccessibility)
-                Divider()
-            }
-            if items.isEmpty {
-                EmptyStateView(searching: !state.searchText.isEmpty)
-            } else {
-                ItemListView(store: store, state: state, items: items, spacing: 2, padding: 6,
-                             onPaste: onPaste, onCopyOnly: onCopyOnly) { item, index, isSelected in
-                    ItemRow(store: store, item: item, index: index, isSelected: isSelected,
-                            onPin: { store.togglePin(item.id) },
-                            onDelete: { store.remove(item.id) })
-                }
-            }
-            Divider()
-            footer
-        }
-    }
-
-    private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-            TextField("Search clipboard history", text: $state.searchText)
-                .textFieldStyle(.plain)
-                .focused(searchFocused)
-            if !state.searchText.isEmpty {
-                Button {
-                    state.searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.06)))
-    }
-
-    private var footer: some View {
-        HStack {
-            Text("↩ Paste    ⌘⌫ Delete    ⌘P Pin    ⌘T Style")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Spacer()
-            if store.items.contains(where: { !$0.pinned }) {
-                Button("Clear") { store.clear(keepPinned: true) }
-                    .buttonStyle(.plain)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .help("Remove all unpinned items")
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-    }
-}
-
-struct ItemRow: View {
-    @ObservedObject var store: HistoryStore
-    let item: ClipItem
-    let index: Int
-    let isSelected: Bool
-    let onPin: () -> Void
-    let onDelete: () -> Void
-
-    private static let maxThumbnail = CGSize(width: 240, height: 96)
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            icon
-                .frame(width: 18, height: 18)
-                .padding(.top, 1)
-            VStack(alignment: .leading, spacing: 4) {
-                content
-                HStack(spacing: 4) {
-                    Text(item.subtitle)
-                    Text("·")
-                    Text(item.date, format: .relative(presentation: .named))
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-            }
-            Spacer(minLength: 4)
-            trailing
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(isSelected ? Color.accentColor.opacity(0.18) : Color.clear)
-        )
-        .contentShape(Rectangle())
-    }
-
-    @ViewBuilder private var icon: some View {
-        if let appIcon = store.appIcon(for: item.sourceBundleID) {
-            Image(nsImage: appIcon).resizable()
-        } else {
-            Image(systemName: item.kind.symbolName)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    @ViewBuilder private var content: some View {
-        switch item.kind {
-        case .text:
-            Text(item.previewText)
-                .font(.system(size: 13))
-                .lineLimit(3)
-                .multilineTextAlignment(.leading)
-                .fixedSize(horizontal: false, vertical: true)
-        case .image:
-            if let thumbnail = store.thumbnail(for: item) {
-                let size = item.thumbnailSize(fitting: Self.maxThumbnail)
-                Image(nsImage: thumbnail)
-                    .resizable()
-                    .interpolation(.high)
-                    .frame(width: size.width, height: size.height)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-                    .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.primary.opacity(0.12)))
-            } else {
-                Text("Image unavailable")
-                    .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
-            }
-        case .files:
-            Text(item.fileNames.joined(separator: ", "))
-                .font(.system(size: 13))
-                .lineLimit(2)
-        }
-    }
-
-    private var trailing: some View {
-        VStack(alignment: .trailing, spacing: 6) {
-            if isSelected {
-                HStack(spacing: 8) {
-                    Button(action: onPin) {
-                        Image(systemName: item.pinned ? "pin.slash" : "pin")
-                    }
-                    .help(item.pinned ? "Unpin" : "Pin")
-                    Button(action: onDelete) {
-                        Image(systemName: "trash")
-                    }
-                    .help("Delete")
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
-            } else if item.pinned {
-                Image(systemName: "pin.fill")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
-            }
-            if index < 9 {
-                Text("⌘\(index + 1)")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
-        }
-    }
-}
-
-// MARK: - Model helpers used by both themes
+// MARK: - Model helpers
 
 extension ClipItem.Kind {
     var symbolName: String {

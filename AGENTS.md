@@ -52,7 +52,8 @@ Sources/Clipstack/
   HistoryStore.swift      list, dedupe, trimming, JSON + PNG persistence, thumbnails
   PanelController.swift   shows the panel, keyboard handling, paste flow
   HistoryPanel.swift      non-activating floating NSPanel
-  HistoryView.swift       SwiftUI panel UI + PanelState
+  HistoryView.swift       PanelState, root SwiftUI view, shared list/banner/empty-state pieces
+  HistoryContentView.swift  panel layout: search pill, item cards, key-cap footer
   Paster.swift            pasteboard writing, ⌘V synthesis, caret lookup via AX
   HotKey.swift            Carbon RegisterEventHotKey wrapper
   Shortcut.swift          shortcut presets stored in UserDefaults
@@ -81,13 +82,6 @@ Sources/Clipstack/
 7. **Main thread only.** Classes are not `@MainActor`-annotated (Timer and event-monitor
    closures are nonisolated), so keep all state mutation on the main thread by construction.
 8. **Privacy.** Never log clipboard contents. Never send anything over the network.
-
-## Temporary: panel theme toggle
-
-`UITheme` switches the panel between `classic` (default) and the experimental `cards` look
-(`CardsHistoryView.swift`). It is exposed as the "New UI (test)" menu item and ⌘T in the
-panel, persisted in UserDefaults under `uiTheme`. This exists for evaluation only; once a
-direction is chosen, keep one theme and delete the toggle.
 
 ## Conventions
 
